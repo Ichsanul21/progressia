@@ -68,7 +68,7 @@
 
     .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-    /* --- NAVBAR: FIXED ANCHOR STRATEGY --- */
+    /* --- NAVBAR --- */
     nav {
       position: fixed;
       top: 0; 
@@ -619,12 +619,9 @@
     @keyframes dash { to { stroke-dashoffset: -1000; } }
     
     /* --- LIGHT MODE PRICING FIXES --- */
-    /* Force dark text for pricing content in light mode */
     html.light-mode .pricing-card .text-white { color: #0f172a !important; }
-    html.light-mode .pricing-card .text-gray-300 { color: #334155 !important; } /* slate-700 */
-    html.light-mode .pricing-card .text-gray-400 { color: #475569 !important; } /* slate-600 */
-    
-    /* Adjust featured card background for light mode contrast */
+    html.light-mode .pricing-card .text-gray-300 { color: #334155 !important; } 
+    html.light-mode .pricing-card .text-gray-400 { color: #475569 !important; } 
     html.light-mode .pricing-card.featured {
        background: linear-gradient(180deg, rgba(6, 182, 212, 0.08) 0%, rgba(255,255,255,0.9) 100%);
        border-color: rgba(6, 182, 212, 0.3);
@@ -667,6 +664,13 @@
     <a href="#architecture" class="lang-key" data-key="nav_architecture">Architecture</a>
     <a href="#integration" class="lang-key" data-key="nav_integration">Integration</a>
     <a href="#pricing" class="lang-key" data-key="nav_pricing">Pricing</a>
+    
+    <!-- Buttons Moved Here -->
+    <div class="flex flex-col gap-4 mt-8 w-full px-8">
+        <button class="btn-secondary w-full lang-key" data-key="btn_signin">Sign In</button>
+        <button class="btn-primary w-full lang-key" data-key="btn_access">Request Access</button>
+    </div>
+
     <div class="flex gap-4 mt-8">
         <button class="btn-icon" id="lang-toggle-mobile" aria-label="Change Language">
             <span class="text-xs font-bold">EN</span>
@@ -707,10 +711,11 @@
           <button class="btn-icon" id="theme-toggle" aria-label="Toggle Theme">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
           </button>
-
-          <button class="btn-secondary text-xs sm:text-sm hidden sm:block lang-key" data-key="btn_signin">Sign In</button>
-          <button class="btn-primary text-xs sm:text-sm lang-key" data-key="btn_access">Request Access</button>
           
+          <!-- Removed Request Access Button from here as requested -->
+          <button class="btn-secondary text-xs sm:text-sm hidden sm:block lang-key" data-key="btn_signin">Sign In</button>
+          
+          <!-- Hamburger Menu (Visible only on mobile) -->
           <div class="menu-icon md:hidden" id="burger-menu">
               <span></span><span></span><span></span>
           </div>
@@ -1338,7 +1343,7 @@
         icon.classList.toggle('open');
     }
     
-    // --- NAVBAR SCROLL LOGIC (SMOOTHER) ---
+    // --- NAVBAR SCROLL LOGIC ---
     const mainNav = document.getElementById('main-nav');
     let lastScrollY = 0;
     let ticking = false;
