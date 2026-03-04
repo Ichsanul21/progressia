@@ -25,26 +25,174 @@
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    
+    /* STRICT NO SCROLL FIX */
+    html, body {
+      overflow-x: hidden;
+      max-width: 100vw;
+      scroll-behavior: smooth;
+    }
     
     body {
       font-family: 'Space Grotesk', sans-serif;
       background: var(--bg-deep);
       color: var(--fg-primary);
-      overflow-x: hidden;
       line-height: 1.6;
+      overflow-y: hidden; 
     }
+
+    body.loaded { overflow-y: auto; }
 
     .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-    /* --- SWISS GRID --- */
+    /* --- SPLASH SCREEN --- */
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--bg-deep);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .door-panel {
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      background: var(--bg-deep);
+      z-index: 10;
+      transition: transform 1.5s cubic-bezier(0.76, 0, 0.24, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--glass-border);
+    }
+    
+    .door-left { left: 0; border-right: 1px solid rgba(0, 212, 255, 0.1); }
+    .door-right { right: 0; border-left: 1px solid rgba(0, 212, 255, 0.1); }
+
+    .door-left::after, .door-right::after {
+      content: ''; position: absolute; top: 0; bottom: 0; width: 3px; background: var(--accent-cyan); box-shadow: 0 0 20px var(--accent-cyan);
+      opacity: 0; transition: opacity 0.5s ease;
+    }
+    .door-left::after { right: 0; }
+    .door-right::after { left: 0; }
+
+    body.loaded .door-panel::after { opacity: 1; }
+    body.loaded .door-left { transform: translateX(-100%); }
+    body.loaded .door-right { transform: translateX(100%); }
+
+    .boot-container {
+      position: relative;
+      z-index: 20;
+      text-align: center;
+      width: 300px;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      padding: 0 20px; /* Padding for small screens */
+    }
+
+    body.loaded .boot-container { opacity: 0; transform: scale(0.9); pointer-events: none; }
+
+    .boot-logo {
+      width: 80px; height: 80px;
+      margin: 0 auto 2rem;
+      border: 2px solid var(--accent-cyan);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: logo-pulse 2s infinite;
+    }
+    
+    @keyframes logo-pulse {
+      0%, 100% { box-shadow: 0 0 0 rgba(0, 212, 255, 0); }
+      50% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.4); }
+    }
+
+    .logo-path {
+      stroke: var(--accent-cyan);
+      stroke-width: 2;
+      fill: none;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+      animation: draw-path 2s ease forwards;
+    }
+    
+    @keyframes draw-path { to { stroke-dashoffset: 0; } }
+
+    .scan-line {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 10px var(--accent-cyan);
+      animation: scan-down 2s linear infinite;
+      opacity: 0.5;
+    }
+    
+    @keyframes scan-down {
+      0% { top: 0%; opacity: 0; }
+      10% { opacity: 0.8; }
+      90% { opacity: 0.8; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    .boot-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--fg-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      height: 20px;
+      overflow: hidden;
+    }
+
+    .boot-progress-bar {
+      width: 100%;
+      height: 2px;
+      background: rgba(255,255,255,0.1);
+      margin-top: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .boot-progress-fill {
+      height: 100%;
+      background: var(--accent-cyan);
+      width: 0%;
+      box-shadow: 0 0 10px var(--accent-cyan);
+      transition: width 0.2s linear;
+    }
+
+    .splash-grid {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(0, 212, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.3;
+      animation: grid-zoom 20s linear infinite;
+    }
+    
+    @keyframes grid-zoom {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* --- MAIN CONTENT STYLES --- */
     .swiss-grid {
       display: grid;
       grid-template-columns: repeat(12, 1fr);
       gap: 1.5rem;
     }
 
-    /* --- GLASSMORPHISM --- */
     .glass-card {
       background: var(--glass-bg);
       backdrop-filter: blur(24px);
@@ -63,12 +211,12 @@
       background: linear-gradient(90deg, transparent, var(--glass-highlight), transparent);
     }
 
-    /* --- NEO-GEO BACKGROUND --- */
     .geo-bg {
       position: fixed;
       inset: 0;
       z-index: -1;
       overflow: hidden;
+      pointer-events: none; /* Prevent interaction */
     }
 
     .geo-grid {
@@ -101,12 +249,16 @@
 
     .geo-glow {
       position: absolute;
-      width: 800px;
-      height: 800px;
+      width: 600px; /* Smaller glow for mobile */
+      height: 600px;
       border-radius: 50%;
       background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
       filter: blur(100px);
       animation: pulse-glow 6s ease-in-out infinite alternate;
+    }
+    
+    @media (min-width: 768px) {
+        .geo-glow { width: 800px; height: 800px; }
     }
 
     @keyframes pulse-glow {
@@ -114,28 +266,30 @@
       100% { opacity: 0.7; transform: scale(1.3); }
     }
 
-    /* --- TYPOGRAPHY --- */
     .headline-xl {
-      font-size: clamp(3rem, 10vw, 7rem);
+      font-size: clamp(2.5rem, 8vw, 7rem); /* Adjusted for mobile */
       font-weight: 700;
       line-height: 0.95;
       letter-spacing: -0.03em;
     }
 
     .headline-lg {
-      font-size: clamp(2rem, 5vw, 4rem);
+      font-size: clamp(1.75rem, 5vw, 4rem);
       font-weight: 600;
       line-height: 1.1;
       letter-spacing: -0.02em;
     }
 
-    /* --- KINETIC ELEMENTS --- */
     .accent-line {
-      width: 60px;
+      width: 40px; /* Smaller on default */
       height: 2px;
       background: var(--accent-cyan);
       animation: line-grow 1s ease-out forwards;
       transform-origin: left;
+    }
+    
+    @media (min-width: 640px) {
+        .accent-line { width: 60px; }
     }
 
     @keyframes line-grow {
@@ -156,61 +310,71 @@
       50% { transform: scale(1.5); opacity: 0.5; }
     }
 
-    /* --- BUTTONS --- */
+    /* --- BUTTONS 3D CLICKY & GLOW --- */
     .btn-primary {
       background: var(--accent-cyan);
       color: var(--bg-deep);
-      font-weight: 600;
-      padding: 1rem 2rem;
+      font-weight: 700;
+      padding: 0.7rem 1.2rem; /* Slightly smaller padding for mobile */
       border: none;
       cursor: pointer;
       position: relative;
-      overflow: hidden;
-      transition: transform 0.2s ease, box-shadow 0.3s ease;
-      animation: btn-float 4s ease-in-out infinite;
-    }
-
-    @keyframes btn-float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-5px); }
-    }
-
-    .btn-primary::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.4) 50%, transparent 60%);
-      transform: translateX(-100%);
-      animation: btn-shine 3s ease-in-out infinite;
-    }
-
-    @keyframes btn-shine {
-      0% { transform: translateX(-100%); }
-      20%, 100% { transform: translateX(100%); }
+      outline: none;
+      border-radius: 2px;
+      transform: translateY(0);
+      box-shadow: 0 5px 0 #0099bb, 0 8px 15px rgba(0,0,0,0.3);
+      transition: all 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
     }
 
     .btn-primary:hover {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 15px 50px rgba(0, 212, 255, 0.5);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 0 #0099bb, 0 15px 30px rgba(0,0,0,0.3), 0 0 30px rgba(0, 212, 255, 0.6);
+    }
+
+    .btn-primary:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #0099bb, 0 3px 8px rgba(0,0,0,0.3);
+    }
+    
+    .btn-primary:focus-visible {
+      outline: 2px solid white;
+      outline-offset: 2px;
     }
 
     .btn-secondary {
       background: transparent;
       color: var(--fg-primary);
-      font-weight: 500;
-      padding: 1rem 2rem;
-      border: 1px solid var(--glass-border);
+      font-weight: 600;
+      padding: 0.7rem 1.2rem;
+      border: 1px solid rgba(255,255,255,0.2);
       cursor: pointer;
-      transition: all 0.3s ease;
+      position: relative;
+      outline: none;
+      border-radius: 2px;
+      transform: translateY(0);
+      box-shadow: 0 5px 0 rgba(255,255,255,0.05), 0 8px 15px rgba(0,0,0,0.2);
+      transition: all 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
     }
 
     .btn-secondary:hover {
       border-color: var(--accent-cyan);
-      background: rgba(0, 212, 255, 0.1);
-      transform: translateY(-2px);
+      background: rgba(0, 212, 255, 0.05);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 0 rgba(0, 212, 255, 0.2), 0 15px 30px rgba(0,0,0,0.2), 0 0 25px rgba(0, 212, 255, 0.3);
     }
 
-    /* --- SCROLL REVEAL --- */
+    .btn-secondary:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.1), 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .btn-secondary:focus-visible {
+      outline: 2px solid var(--accent-cyan);
+      outline-offset: 2px;
+    }
+
     .reveal {
       opacity: 0;
       transform: translateY(60px);
@@ -235,12 +399,17 @@
     .reveal-stagger.visible > *:nth-child(5) { transition-delay: 320ms; opacity: 1; transform: translateY(0); }
     .reveal-stagger.visible > *:nth-child(6) { transition-delay: 400ms; opacity: 1; transform: translateY(0); }
 
-    /* --- NAV --- */
     .nav-link {
       position: relative;
       color: var(--fg-secondary);
       transition: color 0.2s ease;
+      display: none; /* Hide on mobile */
     }
+    
+    @media (min-width: 768px) {
+        .nav-link { display: block; }
+    }
+    
     .nav-link::after {
       content: '';
       position: absolute;
@@ -252,7 +421,6 @@
     .nav-link:hover { color: var(--fg-primary); }
     .nav-link:hover::after { width: 100%; }
 
-    /* --- DATA VIZ (Persuasive) --- */
     .capacity-bar {
       height: 4px;
       background: var(--bg-elevated);
@@ -285,7 +453,6 @@
       100% { transform: translateX(500%); opacity: 0; }
     }
 
-    /* --- TIMELINE --- */
     .timeline-track {
       height: 2px;
       background: var(--bg-elevated);
@@ -307,18 +474,22 @@
     }
 
     .timeline-node {
-      width: 16px; height: 16px;
+      width: 12px; height: 12px; /* Smaller for mobile */
       border: 2px solid var(--fg-muted);
       background: var(--bg-deep);
       border-radius: 2px;
       transform: rotate(45deg);
       transition: all 0.4s ease;
     }
+    
+    @media (min-width: 640px) {
+        .timeline-node { width: 16px; height: 16px; }
+    }
 
     .timeline-node.active {
       border-color: var(--accent-cyan);
       background: var(--accent-cyan);
-      box-shadow: 0 0 25px var(--accent-cyan);
+      box-shadow: 0 0 20px var(--accent-cyan);
       animation: node-pulse 2s ease-in-out infinite;
     }
 
@@ -327,7 +498,6 @@
       50% { box-shadow: 0 0 30px var(--accent-cyan), 0 0 10px var(--accent-cyan); }
     }
 
-    /* --- GLASS PANELS --- */
     .glass-panel {
       transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
     }
@@ -338,49 +508,6 @@
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 212, 255, 0.1);
     }
 
-    /* --- NEURAL LINES --- */
-    .neural-line {
-      stroke: var(--accent-cyan);
-      stroke-width: 1.5;
-      fill: none;
-      stroke-dasharray: 10, 20;
-      animation: dash 30s linear infinite;
-      opacity: 0.8;
-    }
-
-    @keyframes dash {
-      to { stroke-dashoffset: -1000; }
-    }
-
-    /* --- HERO CANVAS --- */
-    #hero-canvas {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-    }
-    
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg-deep); }
-    ::-webkit-scrollbar-thumb { background: var(--fg-muted); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
-
-    /* --- SECTION DIVIDER --- */
-    .section-divider {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
-    }
-    
-    /* --- FLOATING LABEL --- */
-    .float-label {
-      animation: label-float 5s ease-in-out infinite;
-    }
-    
-    @keyframes label-float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-3px); }
-    }
-
-    /* --- ARCHITECTURE --- */
     .arch-layer {
       border-left: 2px solid var(--glass-border);
       padding-left: 1.5rem;
@@ -396,523 +523,796 @@
       border-radius: 1px;
       animation: pulse-dot 2s ease-in-out infinite;
     }
+    
+    .float-label {
+      animation: label-float 5s ease-in-out infinite;
+    }
+    
+    @keyframes label-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    #hero-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+    
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--fg-muted); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-cyan); }
+
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+    }
+    
+    /* Pricing Specific */
+    .pricing-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      transition: transform 0.4s ease, border-color 0.4s ease;
+    }
+    
+    .pricing-card:hover {
+       transform: translateY(-10px);
+       border-color: rgba(0, 212, 255, 0.3);
+    }
+    
+    .pricing-card.featured {
+      border: 1px solid var(--accent-cyan);
+      background: linear-gradient(180deg, rgba(0, 212, 255, 0.05) 0%, rgba(6, 9, 13, 0.8) 100%);
+      position: relative;
+    }
+    
+    /* DISABLE SCALE ON MOBILE TO PREVENT OVERFLOW */
+    @media (min-width: 768px) {
+        .pricing-card.featured {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+    }
+
+    .pricing-card.featured::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(45deg, var(--accent-cyan), transparent, var(--accent-cyan));
+      z-index: -1;
+      filter: blur(20px);
+      opacity: 0.3;
+    }
+
+    .pricing-badge {
+      background: var(--accent-cyan);
+      color: var(--bg-deep);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 12px;
+      position: absolute;
+      top: 0;
+      right: 20px;
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    }
+    
+    .check-icon {
+      width: 16px;
+      height: 16px;
+      background: rgba(0, 212, 255, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .neural-line {
+      stroke: var(--accent-cyan);
+      stroke-width: 1.5;
+      fill: none;
+      stroke-dasharray: 10, 20;
+      animation: dash 30s linear infinite;
+      opacity: 0.8;
+    }
+
+    @keyframes dash {
+      to { stroke-dashoffset: -1000; }
+    }
+    
+    /* Mobile Menu Icon */
+    .menu-icon {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        cursor: pointer;
+    }
+    
+    .menu-icon span {
+        width: 20px;
+        height: 2px;
+        background: var(--fg-secondary);
+        transition: all 0.3s;
+    }
+    
+    @media (min-width: 768px) {
+        .menu-icon { display: none; }
+    }
   </style>
 </head>
 <body>
-  <!-- Geometric Background -->
-  <div class="geo-bg" aria-hidden="true">
-    <div class="geo-grid"></div>
-    <div class="geo-glow" style="top: -300px; left: -300px;"></div>
-    <div class="geo-glow" style="bottom: -300px; right: -300px; animation-delay: -3s;"></div>
+
+  <!-- Splash Screen -->
+  <div id="splash-screen">
+    <div class="splash-grid"></div>
+    <div class="scan-line"></div>
     
-    <div class="geo-shape" style="width: 400px; height: 400px; top: 10%; right: 5%; transform: rotate(45deg); animation-delay: -5s;"></div>
-    <div class="geo-shape" style="width: 300px; height: 300px; bottom: 20%; left: 5%; animation-delay: -12s;"></div>
-    <div class="geo-shape" style="width: 200px; height: 200px; top: 50%; right: 30%; transform: rotate(15deg); animation-delay: -8s;"></div>
+    <div class="door-panel door-left">
+       <div class="absolute top-1/4 left-1/4 w-40 h-40 border border-cyan-400/20 rotate-45"></div>
+    </div>
+    
+    <div class="door-panel door-right">
+       <div class="absolute bottom-1/4 right-1/4 w-40 h-40 border border-cyan-400/20 rotate-12"></div>
+    </div>
+    
+    <div class="boot-container">
+      <div class="boot-logo">
+        <svg width="40" height="40" viewBox="0 0 40 40">
+          <rect x="4" y="20" width="12" height="16" class="logo-path" style="animation-delay: 0s;" />
+          <rect x="24" y="4" width="12" height="32" class="logo-path" style="animation-delay: 0.4s;" />
+          <rect x="18" y="12" width="4" height="24" fill="#00d4ff" opacity="0.5" class="logo-path" style="animation-delay: 0.8s;" />
+        </svg>
+      </div>
+      <div class="boot-text" id="boot-text">Initializing Core...</div>
+      <div class="boot-progress-bar">
+        <div class="boot-progress-fill" id="boot-progress"></div>
+      </div>
+      <div class="text-xs text-gray-600 mt-4 font-mono opacity-50">CLICK TO SKIP</div>
+    </div>
   </div>
 
-  <!-- Navigation -->
-  <nav class="fixed top-0 left-0 right-0 z-50 glass-card" style="border-radius: 0; border-left: none; border-right: none; border-top: none;">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-      <a href="#" class="flex items-center gap-3" aria-label="Progressia Home">
-        <div class="w-10 h-10 border border-cyan-400 flex items-center justify-center" style="border-radius: 2px; animation: pulse-dot 3s infinite;">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path d="M2 10h6v8H2V10zM12 2h6v16h-6V2z" fill="#00d4ff"/>
-            <path d="M9 6h2v12H9V6z" fill="#00d4ff" opacity="0.5"/>
-          </svg>
-        </div>
-        <span class="font-semibold text-lg tracking-tight">Progressia</span>
-      </a>
-      
-      <div class="hidden md:flex items-center gap-8">
-        <a href="#architecture" class="nav-link text-sm tracking-wide">Architecture</a>
-        <a href="#monitoring" class="nav-link text-sm tracking-wide">Monitoring</a>
-        <a href="#transparency" class="nav-link text-sm tracking-wide">Transparency</a>
-        <a href="#integration" class="nav-link text-sm tracking-wide">Integration</a>
-      </div>
-      
-      <div class="flex items-center gap-4">
-        <button class="btn-secondary text-sm hidden sm:block">Sign In</button>
-        <button class="btn-primary text-sm">Request Access</button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Hero Section -->
-  <section class="min-h-screen relative flex items-center pt-20" aria-label="Hero">
-    <canvas id="hero-canvas" aria-hidden="true"></canvas>
-    
-    <div class="max-w-7xl mx-auto px-6 py-20 relative z-10">
-      <div class="swiss-grid">
-        <div class="col-span-12 lg:col-span-8">
-          <div class="reveal">
-            <div class="flex items-center gap-4 mb-8">
-              <div class="accent-line"></div>
-              <span class="font-mono text-xs tracking-widest text-cyan-400">PRECISION PROJECT MANAGEMENT</span>
-            </div>
-          </div>
-          
-          <h1 class="headline-xl reveal" style="transition-delay: 150ms;">
-            Standardize<br>
-            <span class="text-cyan-400">Your Progress</span>
-          </h1>
-          
-          <p class="text-xl text-gray-400 mt-8 max-w-xl reveal" style="transition-delay: 300ms;">
-            Elite clarity for complex operations. A sophisticated command center where transparency meets precision, and every data point tells the story of controlled progress.
-          </p>
-          
-          <div class="flex flex-wrap gap-4 mt-10 reveal" style="transition-delay: 450ms;">
-            <button class="btn-primary">Initialize Platform</button>
-            <button class="btn-secondary">View Architecture</button>
-          </div>
-        </div>
-        
-        <div class="col-span-12 lg:col-span-4 mt-12 lg:mt-0 reveal" style="transition-delay: 600ms;">
-          <div class="glass-card glass-panel p-6">
-            <div class="font-mono text-xs text-gray-500 float-label">OPERATIONAL STATUS</div>
-            <div class="mt-6 space-y-5">
-              <div>
-                <div class="flex justify-between items-center mb-2">
-                  <span class="text-sm text-gray-400">System Throughput</span>
-                  <span class="text-xs text-cyan-400 font-mono">OPTIMAL</span>
-                </div>
-                <div class="capacity-bar"><div class="capacity-fill" data-width="95"></div></div>
-              </div>
-              
-              <div>
-                <div class="flex justify-between items-center mb-2">
-                  <span class="text-sm text-gray-400">Data Synchronization</span>
-                  <span class="text-xs text-cyan-400 font-mono">REAL-TIME</span>
-                </div>
-                <div class="capacity-bar"><div class="capacity-fill" data-width="100"></div></div>
-              </div>
-              
-              <div>
-                <div class="flex justify-between items-center mb-2">
-                  <span class="text-sm text-gray-400">Infrastructure Load</span>
-                  <span class="text-xs text-cyan-400 font-mono">STABLE</span>
-                </div>
-                <div class="capacity-bar"><div class="capacity-fill" data-width="40"></div></div>
-              </div>
-
-              <div class="section-divider my-4"></div>
-              
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-                <span class="text-xs text-gray-500 font-mono">ALL SYSTEMS OPERATIONAL</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Architecture of Monitoring -->
-  <section id="architecture" class="py-32 relative" aria-label="Architecture">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="swiss-grid">
-        <div class="col-span-12 lg:col-span-5 reveal">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="accent-dot"></div>
-            <span class="font-mono text-xs tracking-widest text-gray-500">01 / ARCHITECTURE</span>
-          </div>
-          <h2 class="headline-lg">The Architecture of Monitoring</h2>
-          <p class="text-gray-400 mt-6 text-lg">
-            A multi-layered system designed for absolute transparency. Every stakeholder sees the same truth, processed through a unified analytical framework.
-          </p>
-        </div>
-        
-        <div class="col-span-12 lg:col-span-7 mt-12 lg:mt-0 reveal-stagger" id="arch-layers">
-          <div class="space-y-6">
-            <div class="glass-card glass-panel p-6 arch-item">
-              <div class="arch-layer">
-                <span class="font-mono text-xs text-cyan-400">LAYER 01</span>
-                <h3 class="text-xl font-semibold mt-2">Field Input Layer</h3>
-                <p class="text-gray-400 mt-2 text-sm">Standardized protocols ensure consistency across all input nodes, whether from mobile SDKs, IoT bridges, or direct API gateways.</p>
-              </div>
-            </div>
-            
-            <div class="glass-card glass-panel p-6 arch-item">
-              <div class="arch-layer">
-                <span class="font-mono text-xs text-cyan-400">LAYER 02</span>
-                <h3 class="text-xl font-semibold mt-2">Processing Core</h3>
-                <p class="text-gray-400 mt-2 text-sm">Neural processing engine that validates, normalizes, and enriches raw data streams into actionable intelligence instantly.</p>
-                <div class="mt-4 grid grid-cols-3 gap-4">
-                  <div>
-                    <div class="text-lg font-light text-cyan-400">Continuous</div>
-                    <div class="text-xs text-gray-500">Uptime</div>
-                  </div>
-                  <div>
-                    <div class="text-lg font-light text-cyan-400">Instant</div>
-                    <div class="text-xs text-gray-500">Latency</div>
-                  </div>
-                  <div>
-                    <div class="text-lg font-light text-cyan-400">Bank-Grade</div>
-                    <div class="text-xs text-gray-500">Security</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="glass-card glass-panel p-6 arch-item">
-              <div class="arch-layer">
-                <span class="font-mono text-xs text-cyan-400">LAYER 03</span>
-                <h3 class="text-xl font-semibold mt-2">Visualization Interface</h3>
-                <p class="text-gray-400 mt-2 text-sm">Stakeholder dashboards render complexity as clarity. Role-based views maintain security while ensuring total accessibility.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Dynamic Timeline -->
-  <section id="monitoring" class="py-32 relative" aria-label="Dynamic Timeline">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="text-center mb-16 reveal">
-        <div class="flex items-center justify-center gap-4 mb-6">
-          <div class="accent-line"></div>
-          <span class="font-mono text-xs tracking-widest text-gray-500">02 / DYNAMIC MONITORING</span>
-          <div class="accent-line"></div>
-        </div>
-        <h2 class="headline-lg">Real-Time Project Flow</h2>
-        <p class="text-gray-400 mt-4 max-w-2xl mx-auto">
-          Watch progress unfold across temporal layers. Every milestone tracked, every dependency mapped, every delay anticipated.
-        </p>
-      </div>
-      
-      <div class="glass-card p-8 reveal" id="timeline-container">
-        <div class="flex items-center justify-between mb-8">
-          <span class="font-mono text-xs text-gray-500">CURRENT INITIATIVE</span>
-          <span class="font-mono text-xs text-cyan-400">ACTIVE DEVELOPMENT</span>
-        </div>
-        
-        <!-- Timeline -->
-        <div class="relative">
-          <div class="timeline-track"></div>
-          
-          <div class="flex justify-between mt-6" id="timeline-nodes">
-            <div class="flex flex-col items-center gap-2">
-              <div class="timeline-node active" data-phase="1"></div>
-              <span class="text-xs text-gray-400">Initiation</span>
-            </div>
-            <div class="flex flex-col items-center gap-2">
-              <div class="timeline-node active" data-phase="2"></div>
-              <span class="text-xs text-gray-400">Planning</span>
-            </div>
-            <div class="flex flex-col items-center gap-2">
-              <div class="timeline-node active" data-phase="3"></div>
-              <span class="text-xs text-gray-400">Execution</span>
-            </div>
-            <div class="flex flex-col items-center gap-2">
-              <div class="timeline-node" data-phase="4"></div>
-              <span class="text-xs text-gray-400">Monitoring</span>
-            </div>
-            <div class="flex flex-col items-center gap-2">
-              <div class="timeline-node" data-phase="5"></div>
-              <span class="text-xs text-gray-400">Closure</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Phase Details -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-          <div class="p-4 border border-gray-800 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/5">
-            <div class="text-xs font-mono text-gray-500 mb-2">CURRENT PHASE</div>
-            <div class="text-xl font-semibold">Execution</div>
-            <div class="capacity-bar mt-4"><div class="capacity-fill" data-width="73"></div></div>
-            <div class="flex justify-between mt-2 text-xs text-gray-500">
-              <span>Progress</span>
-              <span class="text-cyan-400">On Track</span>
-            </div>
-          </div>
-          
-          <div class="p-4 border border-gray-800 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/5">
-            <div class="text-xs font-mono text-gray-500 mb-2">DEPENDENCIES</div>
-            <div class="text-xl font-semibold">Managed</div>
-            <div class="mt-4 flex gap-2 flex-wrap">
-              <span class="px-2 py-1 text-xs bg-green-400/10 text-green-400 border border-green-400/20">Aligned</span>
-              <span class="px-2 py-1 text-xs bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">Monitored</span>
-            </div>
-          </div>
-          
-          <div class="p-4 border border-gray-800 hover:border-cyan-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-400/5">
-            <div class="text-xs font-mono text-gray-500 mb-2">NEXT MILESTONE</div>
-            <div class="text-xl font-semibold">Beta Release</div>
-            <div class="mt-4 flex items-center gap-2">
-              <div class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
-              <span class="text-sm text-gray-400">Approaching</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Transparency Dashboard -->
-  <section id="transparency" class="py-32 relative" aria-label="Transparency Dashboard">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="swiss-grid">
-        <div class="col-span-12 reveal">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="accent-dot"></div>
-            <span class="font-mono text-xs tracking-widest text-gray-500">03 / TRANSPARENCY</span>
-          </div>
-          <h2 class="headline-lg mb-12">Layers of Clarity</h2>
-        </div>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 reveal-stagger" id="transparency-cards">
-        <div class="glass-card glass-panel p-6 group">
-          <div class="flex items-start justify-between">
-            <div class="w-12 h-12 border border-cyan-400/30 flex items-center justify-center group-hover:border-cyan-400 transition-all duration-300 group-hover:rotate-45" style="border-radius: 2px;">
-              <svg class="w-6 h-6 text-cyan-400 transition-transform duration-300 group-hover:-rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-              </svg>
-            </div>
-            <span class="font-mono text-xs text-gray-600">01</span>
-          </div>
-          <h3 class="text-lg font-semibold mt-4">Resource Allocation</h3>
-          <p class="text-sm text-gray-400 mt-2">Real-time visibility into budget distribution and asset utilization across all project phases.</p>
-          <div class="mt-4 pt-4 border-t border-gray-800">
-            <div class="flex justify-between text-xs">
-              <span class="text-gray-500">Visibility</span>
-              <span class="text-cyan-400">Total</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="glass-card glass-panel p-6 group">
-          <div class="flex items-start justify-between">
-            <div class="w-12 h-12 border border-cyan-400/30 flex items-center justify-center group-hover:border-cyan-400 transition-all duration-300 group-hover:rotate-45" style="border-radius: 2px;">
-              <svg class="w-6 h-6 text-cyan-400 transition-transform duration-300 group-hover:-rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>
-            </div>
-            <span class="font-mono text-xs text-gray-600">02</span>
-          </div>
-          <h3 class="text-lg font-semibold mt-4">Risk Analysis</h3>
-          <p class="text-sm text-gray-400 mt-2">Predictive risk modeling with scenario simulations. Stakeholders see threats before they materialize.</p>
-          <div class="mt-4 pt-4 border-t border-gray-800">
-            <div class="flex justify-between text-xs">
-              <span class="text-gray-500">Status</span>
-              <span class="text-cyan-400">Mitigated</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="glass-card glass-panel p-6 group">
-          <div class="flex items-start justify-between">
-            <div class="w-12 h-12 border border-cyan-400/30 flex items-center justify-center group-hover:border-cyan-400 transition-all duration-300 group-hover:rotate-45" style="border-radius: 2px;">
-              <svg class="w-6 h-6 text-cyan-400 transition-transform duration-300 group-hover:-rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-              </svg>
-            </div>
-            <span class="font-mono text-xs text-gray-600">03</span>
-          </div>
-          <h3 class="text-lg font-semibold mt-4">Stakeholder Access</h3>
-          <p class="text-sm text-gray-400 mt-2">Granular permission controls ensure every stakeholder sees relevant data while maintaining security.</p>
-          <div class="mt-4 pt-4 border-t border-gray-800">
-            <div class="flex justify-between text-xs">
-              <span class="text-gray-500">Control</span>
-              <span class="text-cyan-400">Granular</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="glass-card glass-panel p-6 group">
-          <div class="flex items-start justify-between">
-            <div class="w-12 h-12 border border-cyan-400/30 flex items-center justify-center group-hover:border-cyan-400 transition-all duration-300 group-hover:rotate-45" style="border-radius: 2px;">
-              <svg class="w-6 h-6 text-cyan-400 transition-transform duration-300 group-hover:-rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-              </svg>
-            </div>
-            <span class="font-mono text-xs text-gray-600">04</span>
-          </div>
-          <h3 class="text-lg font-semibold mt-4">Audit Trail</h3>
-          <p class="text-sm text-gray-400 mt-2">Immutable logs of every action, decision, and modification. Complete accountability built into the architecture.</p>
-          <div class="mt-4 pt-4 border-t border-gray-800">
-            <div class="flex justify-between text-xs">
-              <span class="text-gray-500">History</span>
-              <span class="text-cyan-400">Immutable</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Integration Section -->
-  <section id="integration" class="py-32 relative overflow-hidden" aria-label="Integration">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="swiss-grid items-center">
-        <div class="col-span-12 lg:col-span-6 reveal">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="accent-dot"></div>
-            <span class="font-mono text-xs tracking-widest text-gray-500">04 / INTEGRATION</span>
-          </div>
-          <h2 class="headline-lg">Neural Processing Behind the Visual</h2>
-          <p class="text-gray-400 mt-6 text-lg">
-            Beneath every glass panel lies a sophisticated neural network that processes, validates, and transforms raw field data into stakeholder-ready intelligence.
-          </p>
-          
-          <div class="mt-8 space-y-4">
-            <div class="flex items-center gap-4 p-4 border border-gray-800 hover:border-cyan-400/50 transition-all duration-300 hover:translate-x-2 cursor-pointer">
-              <div class="w-10 h-10 border border-cyan-400/30 flex items-center justify-center">
-                <span class="font-mono text-sm text-cyan-400">01</span>
-              </div>
-              <div>
-                <div class="font-semibold">Data Ingestion Engine</div>
-                <div class="text-sm text-gray-500">High-velocity event processing</div>
-              </div>
-            </div>
-            
-            <div class="flex items-center gap-4 p-4 border border-gray-800 hover:border-cyan-400/50 transition-all duration-300 hover:translate-x-2 cursor-pointer">
-              <div class="w-10 h-10 border border-cyan-400/30 flex items-center justify-center">
-                <span class="font-mono text-sm text-cyan-400">02</span>
-              </div>
-              <div>
-                <div class="font-semibold">Anomaly Detection</div>
-                <div class="text-sm text-gray-500">ML-powered pattern recognition</div>
-              </div>
-            </div>
-            
-            <div class="flex items-center gap-4 p-4 border border-gray-800 hover:border-cyan-400/50 transition-all duration-300 hover:translate-x-2 cursor-pointer">
-              <div class="w-10 h-10 border border-cyan-400/30 flex items-center justify-center">
-                <span class="font-mono text-sm text-cyan-400">03</span>
-              </div>
-              <div>
-                <div class="font-semibold">Predictive Analytics</div>
-                <div class="text-sm text-gray-500">Forward projection models</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-span-12 lg:col-span-6 mt-12 lg:mt-0 reveal">
-          <div class="glass-card p-8 relative">
-            <!-- Neural Visualization -->
-            <svg class="w-full h-64" viewBox="0 0 400 250" aria-hidden="true" id="neural-viz">
-              <g id="neural-connections"></g>
-              <g id="neural-nodes">
-                <!-- Input Layer -->
-                <circle cx="50" cy="50" r="8" fill="#0c1117" stroke="#00d4ff" stroke-width="1.5"/>
-                <circle cx="50" cy="100" r="8" fill="#0c1117" stroke="#00d4ff" stroke-width="1.5"/>
-                <circle cx="50" cy="150" r="8" fill="#0c1117" stroke="#00d4ff" stroke-width="1.5"/>
-                <circle cx="50" cy="200" r="8" fill="#0c1117" stroke="#00d4ff" stroke-width="1.5"/>
-                
-                <!-- Hidden Layer 1 -->
-                <circle cx="150" cy="75" r="6" fill="#0c1117" stroke="#0088ff" stroke-width="1.5"/>
-                <circle cx="150" cy="125" r="6" fill="#0c1117" stroke="#0088ff" stroke-width="1.5"/>
-                <circle cx="150" cy="175" r="6" fill="#0c1117" stroke="#0088ff" stroke-width="1.5"/>
-                
-                <!-- Hidden Layer 2 -->
-                <circle cx="250" cy="100" r="6" fill="#0c1117" stroke="#0088ff" stroke-width="1.5"/>
-                <circle cx="250" cy="150" r="6" fill="#0c1117" stroke="#0088ff" stroke-width="1.5"/>
-                
-                <!-- Output Layer -->
-                <circle cx="350" cy="125" r="10" fill="#00d4ff" stroke="#00d4ff" stroke-width="2"/>
-              </g>
-            </svg>
-            
-            <div class="mt-6 grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div class="font-mono text-xl text-cyan-400">Active</div>
-                <div class="text-xs text-gray-500">Node Mesh</div>
-              </div>
-              <div>
-                <div class="font-mono text-xl text-cyan-400">Dense</div>
-                <div class="text-xs text-gray-500">Connections</div>
-              </div>
-              <div>
-                <div class="font-mono text-xl text-cyan-400">High</div>
-                <div class="text-xs text-gray-500">Accuracy</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA Section -->
-  <section class="py-32 relative" aria-label="Call to Action">
-    <div class="max-w-4xl mx-auto px-6 text-center reveal">
-      <div class="flex items-center justify-center gap-4 mb-6">
-        <div class="accent-line"></div>
-        <span class="font-mono text-xs tracking-widest text-cyan-400">FINAL STEP</span>
-        <div class="accent-line"></div>
-      </div>
-      
-      <h2 class="headline-lg mb-6">Enter the Command Center</h2>
-      
-      <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-10">
-        Join the elite ecosystem where transparency is architecture, and every project moves with the precision of a masterfully executed blueprint.
-      </p>
-      
-      <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <button class="btn-primary text-lg px-10 py-4">Request Platform Access</button>
-        <button class="btn-secondary text-lg px-10 py-4">Schedule Demo</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="py-12 border-t border-gray-800">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="flex flex-col md:flex-row justify-between items-center gap-6">
-        <div class="flex items-center gap-3">
-          <div class="w-8 h-8 border border-cyan-400 flex items-center justify-center" style="border-radius: 2px;">
-            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+  <!-- Main Application -->
+  <div id="app">
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass-card" style="border-radius: 0; border-left: none; border-right: none; border-top: none;">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
+        <a href="#" class="flex items-center gap-3" aria-label="Progressia Home">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 border border-cyan-400 flex items-center justify-center" style="border-radius: 2px; animation: pulse-dot 3s infinite;">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
               <path d="M2 10h6v8H2V10zM12 2h6v16h-6V2z" fill="#00d4ff"/>
               <path d="M9 6h2v12H9V6z" fill="#00d4ff" opacity="0.5"/>
             </svg>
           </div>
-          <span class="font-semibold">Progressia</span>
+          <span class="font-semibold text-base sm:text-lg tracking-tight">Progressia</span>
+        </a>
+        
+        <!-- Desktop Nav -->
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#architecture" class="nav-link text-sm tracking-wide">Architecture</a>
+          <a href="#integration" class="nav-link text-sm tracking-wide">Integration</a>
+          <a href="#pricing" class="nav-link text-sm tracking-wide">Pricing</a>
         </div>
         
-        <div class="flex items-center gap-8 text-sm text-gray-500">
-          <a href="#" class="hover:text-cyan-400 transition-colors">Privacy</a>
-          <a href="#" class="hover:text-cyan-400 transition-colors">Terms</a>
-          <a href="#" class="hover:text-cyan-400 transition-colors">Security</a>
-          <a href="#" class="hover:text-cyan-400 transition-colors">Contact</a>
+        <div class="flex items-center gap-2 sm:gap-4">
+          <button class="btn-secondary text-xs sm:text-sm hidden sm:block">Sign In</button>
+          <button class="btn-primary text-xs sm:text-sm">Request Access</button>
+          <!-- Mobile Menu Icon -->
+          <div class="menu-icon md:hidden ml-2">
+              <span></span>
+              <span></span>
+              <span></span>
+          </div>
         </div>
-        
-        <div class="text-sm text-gray-600 font-mono">System Nominal</div>
       </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="min-h-screen relative flex items-start pt-24 sm:pt-28 lg:pt-32" aria-label="Hero">
+      <canvas id="hero-canvas" aria-hidden="true"></canvas>
+      
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 relative z-10 w-full">
+        <div class="swiss-grid">
+          <div class="col-span-12 lg:col-span-8">
+            <div class="reveal">
+              <div class="flex items-center gap-2 sm:gap-4 mb-6 sm:mb-8">
+                <div class="accent-line"></div>
+                <span class="font-mono text-[10px] sm:text-xs tracking-widest text-cyan-400 whitespace-nowrap">PRECISION PROJECT MANAGEMENT</span>
+              </div>
+            </div>
+            
+            <h1 class="headline-xl reveal" style="transition-delay: 150ms;">
+              Standardize<br>
+              <span class="text-cyan-400">Your Progress</span>
+            </h1>
+            
+            <p class="text-base sm:text-xl text-gray-400 mt-6 sm:mt-8 max-w-xl reveal" style="transition-delay: 300ms;">
+              Elite clarity for complex operations. A sophisticated command center where transparency meets precision.
+            </p>
+            
+            <div class="flex flex-wrap gap-3 sm:gap-4 mt-8 sm:mt-10 reveal" style="transition-delay: 450ms;">
+              <button class="btn-primary text-sm sm:text-base">Initialize Platform</button>
+              <button class="btn-secondary text-sm sm:text-base">View Architecture</button>
+            </div>
+          </div>
+          
+          <div class="col-span-12 lg:col-span-4 mt-8 lg:mt-0 reveal" style="transition-delay: 600ms;">
+            <div class="glass-card glass-panel p-4 sm:p-6">
+              <div class="font-mono text-[10px] sm:text-xs text-gray-500 float-label">OPERATIONAL STATUS</div>
+              <div class="mt-4 sm:mt-6 space-y-4 sm:space-y-5">
+                <div>
+                  <div class="flex justify-between items-center mb-1 sm:mb-2">
+                    <span class="text-xs sm:text-sm text-gray-400">System Throughput</span>
+                    <span class="text-[10px] sm:text-xs text-cyan-400 font-mono">OPTIMAL</span>
+                  </div>
+                  <div class="capacity-bar"><div class="capacity-fill" data-width="95"></div></div>
+                </div>
+                
+                <div>
+                  <div class="flex justify-between items-center mb-1 sm:mb-2">
+                    <span class="text-xs sm:text-sm text-gray-400">Data Sync</span>
+                    <span class="text-[10px] sm:text-xs text-cyan-400 font-mono">REAL-TIME</span>
+                  </div>
+                  <div class="capacity-bar"><div class="capacity-fill" data-width="100"></div></div>
+                </div>
+                
+                <div>
+                  <div class="flex justify-between items-center mb-1 sm:mb-2">
+                    <span class="text-xs sm:text-sm text-gray-400">Infra Load</span>
+                    <span class="text-[10px] sm:text-xs text-cyan-400 font-mono">STABLE</span>
+                  </div>
+                  <div class="capacity-bar"><div class="capacity-fill" data-width="40"></div></div>
+                </div>
+
+                <div class="section-divider my-3 sm:my-4"></div>
+                
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                  <span class="text-[10px] sm:text-xs text-gray-500 font-mono">ALL SYSTEMS OPERATIONAL</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture of Monitoring -->
+    <section id="architecture" class="py-16 sm:py-32 relative" aria-label="Architecture">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="swiss-grid">
+          <div class="col-span-12 lg:col-span-5 reveal">
+            <div class="flex items-center gap-4 mb-4 sm:mb-6">
+              <div class="accent-dot"></div>
+              <span class="font-mono text-[10px] sm:text-xs tracking-widest text-gray-500">01 / ARCHITECTURE</span>
+            </div>
+            <h2 class="headline-lg">The Architecture of Monitoring</h2>
+            <p class="text-gray-400 mt-4 sm:mt-6 text-base sm:text-lg">
+              A multi-layered system designed for absolute transparency. Every stakeholder sees the same truth.
+            </p>
+          </div>
+          
+          <div class="col-span-12 lg:col-span-7 mt-8 lg:mt-0 reveal-stagger" id="arch-layers">
+            <div class="space-y-4 sm:space-y-6">
+              <div class="glass-card glass-panel p-4 sm:p-6 arch-item">
+                <div class="arch-layer">
+                  <span class="font-mono text-[10px] sm:text-xs text-cyan-400">LAYER 01</span>
+                  <h3 class="text-lg sm:text-xl font-semibold mt-2">Field Input Layer</h3>
+                  <p class="text-gray-400 mt-2 text-xs sm:text-sm">Standardized protocols ensure consistency across all input nodes.</p>
+                </div>
+              </div>
+              
+              <div class="glass-card glass-panel p-4 sm:p-6 arch-item">
+                <div class="arch-layer">
+                  <span class="font-mono text-[10px] sm:text-xs text-cyan-400">LAYER 02</span>
+                  <h3 class="text-lg sm:text-xl font-semibold mt-2">Processing Core</h3>
+                  <p class="text-gray-400 mt-2 text-xs sm:text-sm">Neural processing engine that validates and enriches raw data streams.</p>
+                </div>
+              </div>
+              
+              <div class="glass-card glass-panel p-4 sm:p-6 arch-item">
+                <div class="arch-layer">
+                  <span class="font-mono text-[10px] sm:text-xs text-cyan-400">LAYER 03</span>
+                  <h3 class="text-lg sm:text-xl font-semibold mt-2">Visualization Interface</h3>
+                  <p class="text-gray-400 mt-2 text-xs sm:text-sm">Stakeholder dashboards render complexity as clarity.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dynamic Timeline -->
+    <section id="monitoring" class="py-16 sm:py-32 relative" aria-label="Dynamic Timeline">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="text-center mb-12 sm:mb-16 reveal">
+          <div class="flex items-center justify-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+            <div class="accent-line"></div>
+            <span class="font-mono text-[10px] sm:text-xs tracking-widest text-gray-500">02 / DYNAMIC MONITORING</span>
+            <div class="accent-line"></div>
+          </div>
+          <h2 class="headline-lg">Real-Time Project Flow</h2>
+        </div>
+        
+        <div class="glass-card p-4 sm:p-8 reveal" id="timeline-container">
+          <div class="flex items-center justify-between mb-6 sm:mb-8">
+            <span class="font-mono text-[10px] sm:text-xs text-gray-500">CURRENT INITIATIVE</span>
+            <span class="font-mono text-[10px] sm:text-xs text-cyan-400">ACTIVE DEVELOPMENT</span>
+          </div>
+          
+          <div class="relative">
+            <div class="timeline-track"></div>
+            <div class="flex justify-between mt-4 sm:mt-6 px-1">
+              <div class="flex flex-col items-center gap-1 sm:gap-2">
+                <div class="timeline-node active"></div>
+                <span class="text-[10px] sm:text-xs text-gray-400">Initiation</span>
+              </div>
+              <div class="flex flex-col items-center gap-1 sm:gap-2">
+                <div class="timeline-node active"></div>
+                <span class="text-[10px] sm:text-xs text-gray-400">Planning</span>
+              </div>
+              <div class="flex flex-col items-center gap-1 sm:gap-2">
+                <div class="timeline-node active"></div>
+                <span class="text-[10px] sm:text-xs text-gray-400">Execution</span>
+              </div>
+              <div class="flex flex-col items-center gap-1 sm:gap-2">
+                <div class="timeline-node"></div>
+                <span class="text-[10px] sm:text-xs text-gray-400">Monitor</span>
+              </div>
+              <div class="flex flex-col items-center gap-1 sm:gap-2">
+                <div class="timeline-node"></div>
+                <span class="text-[10px] sm:text-xs text-gray-400">Closure</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mt-8 sm:mt-12">
+            <div class="p-3 sm:p-4 border border-gray-800 hover:border-cyan-400/50 transition-all duration-300">
+              <div class="text-[10px] sm:text-xs font-mono text-gray-500 mb-1 sm:mb-2">CURRENT PHASE</div>
+              <div class="text-lg sm:text-xl font-semibold">Execution</div>
+              <div class="capacity-bar mt-3 sm:mt-4"><div class="capacity-fill" data-width="73"></div></div>
+              <div class="flex justify-between mt-1 sm:mt-2 text-[10px] sm:text-xs text-gray-500">
+                <span>Progress</span>
+                <span class="text-cyan-400">On Track</span>
+              </div>
+            </div>
+            
+            <div class="p-3 sm:p-4 border border-gray-800 hover:border-cyan-400/50 transition-all duration-300">
+              <div class="text-[10px] sm:text-xs font-mono text-gray-500 mb-1 sm:mb-2">DEPENDENCIES</div>
+              <div class="text-lg sm:text-xl font-semibold">Managed</div>
+              <div class="mt-3 sm:mt-4 flex gap-1 sm:gap-2 flex-wrap">
+                <span class="px-2 py-1 text-[10px] sm:text-xs bg-green-400/10 text-green-400 border border-green-400/20">Aligned</span>
+                <span class="px-2 py-1 text-[10px] sm:text-xs bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">Monitored</span>
+              </div>
+            </div>
+            
+            <div class="p-3 sm:p-4 border border-gray-800 hover:border-cyan-400/50 transition-all duration-300">
+              <div class="text-[10px] sm:text-xs font-mono text-gray-500 mb-1 sm:mb-2">NEXT MILESTONE</div>
+              <div class="text-lg sm:text-xl font-semibold">Beta Release</div>
+              <div class="mt-3 sm:mt-4 flex items-center gap-2">
+                <div class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                <span class="text-xs sm:text-sm text-gray-400">Approaching</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Transparency Dashboard -->
+    <section id="transparency" class="py-16 sm:py-32 relative" aria-label="Transparency Dashboard">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="swiss-grid">
+          <div class="col-span-12 reveal">
+            <div class="flex items-center gap-4 mb-4 sm:mb-6">
+              <div class="accent-dot"></div>
+              <span class="font-mono text-[10px] sm:text-xs tracking-widest text-gray-500">03 / TRANSPARENCY</span>
+            </div>
+            <h2 class="headline-lg mb-8 sm:mb-12">Layers of Clarity</h2>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 reveal-stagger" id="transparency-cards">
+          <div class="glass-card glass-panel p-4 sm:p-6 group">
+            <div class="flex items-start justify-between">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 border border-cyan-400/30 flex items-center justify-center group-hover:border-cyan-400 transition-all duration-300 group-hover:rotate-45" style="border-radius: 2px;">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400 transition-transform duration-300 group-hover:-rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+              </div>
+              <span class="font-mono text-[10px] sm:text-xs text-gray-600">01</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-semibold mt-3 sm:mt-4">Resource Allocation</h3>
+            <p class="text-xs sm:text-sm text-gray-400 mt-1 sm:mt-2">Real-time visibility into budget distribution.</p>
+          </div>
+          
+          <div class="glass-card glass-panel p-4 sm:p-6 group">
+            <div class="flex items-start justify-between">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 border border-cyan-400/30 flex items-center justify-center group-hover:border-cyan-400 transition-all duration-300 group-hover:rotate-45" style="border-radius: 2px;">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400 transition-transform duration-300 group-hover:-rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+              </div>
+              <span class="font-mono text-[10px] sm:text-xs text-gray-600">02</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-semibold mt-3 sm:mt-4">Risk Analysis</h3>
+            <p class="text-xs sm:text-sm text-gray-400 mt-1 sm:mt-2">Predictive risk modeling for stakeholders.</p>
+          </div>
+          
+          <div class="glass-card glass-panel p-4 sm:p-6 group">
+            <div class="flex items-start justify-between">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 border border-cyan-400/30 flex items-center justify-center group-hover:border-cyan-400 transition-all duration-300 group-hover:rotate-45" style="border-radius: 2px;">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400 transition-transform duration-300 group-hover:-rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+              <span class="font-mono text-[10px] sm:text-xs text-gray-600">03</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-semibold mt-3 sm:mt-4">Stakeholder Access</h3>
+            <p class="text-xs sm:text-sm text-gray-400 mt-1 sm:mt-2">Granular permission controls.</p>
+          </div>
+          
+          <div class="glass-card glass-panel p-4 sm:p-6 group">
+            <div class="flex items-start justify-between">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 border border-cyan-400/30 flex items-center justify-center group-hover:border-cyan-400 transition-all duration-300 group-hover:rotate-45" style="border-radius: 2px;">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400 transition-transform duration-300 group-hover:-rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+              </div>
+              <span class="font-mono text-[10px] sm:text-xs text-gray-600">04</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-semibold mt-3 sm:mt-4">Audit Trail</h3>
+            <p class="text-xs sm:text-sm text-gray-400 mt-1 sm:mt-2">Immutable logs of every action.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Integration Section -->
+    <section id="integration" class="py-16 sm:py-32 relative overflow-hidden" aria-label="Integration">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="swiss-grid items-center">
+          <div class="col-span-12 lg:col-span-6 reveal">
+            <div class="flex items-center gap-4 mb-4 sm:mb-6">
+              <div class="accent-dot"></div>
+              <span class="font-mono text-[10px] sm:text-xs tracking-widest text-gray-500">04 / INTEGRATION</span>
+            </div>
+            <h2 class="headline-lg">Neural Processing</h2>
+            <p class="text-gray-400 mt-4 sm:mt-6 text-base sm:text-lg">
+              Beneath every glass panel lies a sophisticated neural network that processes and transforms raw field data.
+            </p>
+            
+            <div class="mt-6 sm:mt-8 space-y-3 sm:space-y-4">
+              <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-800 hover:border-cyan-400/50 transition-all duration-300 hover:translate-x-2 cursor-pointer">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 border border-cyan-400/30 flex items-center justify-center flex-shrink-0">
+                  <span class="font-mono text-xs sm:text-sm text-cyan-400">01</span>
+                </div>
+                <div>
+                  <div class="font-semibold text-sm sm:text-base">Data Ingestion Engine</div>
+                  <div class="text-xs sm:text-sm text-gray-500">High-velocity event processing</div>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-800 hover:border-cyan-400/50 transition-all duration-300 hover:translate-x-2 cursor-pointer">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 border border-cyan-400/30 flex items-center justify-center flex-shrink-0">
+                  <span class="font-mono text-xs sm:text-sm text-cyan-400">02</span>
+                </div>
+                <div>
+                  <div class="font-semibold text-sm sm:text-base">Anomaly Detection</div>
+                  <div class="text-xs sm:text-sm text-gray-500">ML-powered pattern recognition</div>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border border-gray-800 hover:border-cyan-400/50 transition-all duration-300 hover:translate-x-2 cursor-pointer">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 border border-cyan-400/30 flex items-center justify-center flex-shrink-0">
+                  <span class="font-mono text-xs sm:text-sm text-cyan-400">03</span>
+                </div>
+                <div>
+                  <div class="font-semibold text-sm sm:text-base">Predictive Analytics</div>
+                  <div class="text-xs sm:text-sm text-gray-500">Forward projection models</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-span-12 lg:col-span-6 mt-8 lg:mt-0 reveal">
+            <div class="glass-card p-4 sm:p-8 relative">
+              <svg class="w-full h-48 sm:h-64" viewBox="0 0 400 250" aria-hidden="true" id="neural-viz">
+                <g id="neural-connections"></g>
+                <g id="neural-nodes">
+                  <circle cx="50" cy="50" r="8" fill="#0c1117" stroke="#00d4ff" stroke-width="1.5"/>
+                  <circle cx="50" cy="100" r="8" fill="#0c1117" stroke="#00d4ff" stroke-width="1.5"/>
+                  <circle cx="50" cy="150" r="8" fill="#0c1117" stroke="#00d4ff" stroke-width="1.5"/>
+                  <circle cx="50" cy="200" r="8" fill="#0c1117" stroke="#00d4ff" stroke-width="1.5"/>
+                  <circle cx="150" cy="75" r="6" fill="#0c1117" stroke="#0088ff" stroke-width="1.5"/>
+                  <circle cx="150" cy="125" r="6" fill="#0c1117" stroke="#0088ff" stroke-width="1.5"/>
+                  <circle cx="150" cy="175" r="6" fill="#0c1117" stroke="#0088ff" stroke-width="1.5"/>
+                  <circle cx="250" cy="100" r="6" fill="#0c1117" stroke="#0088ff" stroke-width="1.5"/>
+                  <circle cx="250" cy="150" r="6" fill="#0c1117" stroke="#0088ff" stroke-width="1.5"/>
+                  <circle cx="350" cy="125" r="10" fill="#00d4ff" stroke="#00d4ff" stroke-width="2"/>
+                </g>
+              </svg>
+              
+              <div class="mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-4 text-center">
+                <div>
+                  <div class="font-mono text-base sm:text-xl text-cyan-400">Active</div>
+                  <div class="text-[10px] sm:text-xs text-gray-500">Node Mesh</div>
+                </div>
+                <div>
+                  <div class="font-mono text-base sm:text-xl text-cyan-400">Dense</div>
+                  <div class="text-[10px] sm:text-xs text-gray-500">Connections</div>
+                </div>
+                <div>
+                  <div class="font-mono text-base sm:text-xl text-cyan-400">High</div>
+                  <div class="text-[10px] sm:text-xs text-gray-500">Accuracy</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-16 sm:py-32 relative" aria-label="Pricing">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="text-center mb-12 sm:mb-16 reveal">
+          <div class="flex items-center justify-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+            <div class="accent-line"></div>
+            <span class="font-mono text-[10px] sm:text-xs tracking-widest text-gray-500">05 / SKEMA BISNIS</span>
+            <div class="accent-line"></div>
+          </div>
+          <h2 class="headline-lg">Investment Clarity</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-start reveal-stagger">
+          
+          <!-- Starter Pack -->
+          <div class="pricing-card glass-panel p-6 sm:p-8 relative">
+            <div class="text-xs sm:text-sm font-mono text-gray-500 mb-2">STARTER PACK</div>
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl sm:text-4xl font-bold">0 IDR</span>
+            </div>
+            <div class="text-[10px] sm:text-xs text-cyan-400 mt-1 font-mono">14 Hari Uji Coba</div>
+            <p class="text-gray-400 text-xs sm:text-sm mt-3 sm:mt-4 mb-4 sm:mb-6">Cocok untuk uji coba awal.</p>
+            
+            <div class="border-t border-gray-800 pt-4 sm:pt-6 space-y-2 sm:space-y-3">
+              <div class="flex items-center gap-3">
+                <div class="check-icon">
+                  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <span class="text-xs sm:text-sm text-gray-300">3 Proyek Aktif</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="check-icon">
+                  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <span class="text-xs sm:text-sm text-gray-300">Tim Maks. 5</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="check-icon">
+                  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <span class="text-xs sm:text-sm text-gray-300">Cloud 1GB</span>
+              </div>
+            </div>
+            
+            <button class="w-full mt-6 sm:mt-8 btn-secondary text-xs sm:text-sm">Mulai Uji Coba</button>
+          </div>
+
+          <!-- Business Reguler -->
+          <div class="pricing-card featured glass-panel p-6 sm:p-8 relative">
+             <div class="pricing-badge">POPULER</div>
+             <div class="text-xs sm:text-sm font-mono text-cyan-400 mb-2">BUSINESS REGULER</div>
+             <div class="flex items-baseline gap-1">
+               <span class="text-3xl sm:text-4xl font-bold text-white">199k</span>
+               <span class="text-gray-400 text-xs sm:text-sm">/bulan</span>
+             </div>
+             <p class="text-gray-300 text-xs sm:text-sm mt-3 sm:mt-4 mb-4 sm:mb-6">Paket utama untuk vendor yang sedang tumbuh.</p>
+             
+             <div class="border-t border-cyan-400/30 pt-4 sm:pt-6 space-y-2 sm:space-y-3">
+               <div class="flex items-center gap-3">
+                 <div class="check-icon" style="background: rgba(0, 212, 255, 0.2);">
+                   <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                 </div>
+                 <span class="text-xs sm:text-sm text-white">5 Proyek Aktif</span>
+               </div>
+               <div class="flex items-center gap-3">
+                 <div class="check-icon" style="background: rgba(0, 212, 255, 0.2);">
+                   <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                 </div>
+                 <span class="text-xs sm:text-sm text-white">Tim Maks. 20</span>
+               </div>
+               <div class="flex items-center gap-3">
+                 <div class="check-icon" style="background: rgba(0, 212, 255, 0.2);">
+                   <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                 </div>
+                 <span class="text-xs sm:text-sm text-white">Real-time Dashboard</span>
+               </div>
+             </div>
+             
+             <button class="w-full mt-6 sm:mt-8 btn-primary text-xs sm:text-sm">Pilih Paket Ini</button>
+          </div>
+
+          <!-- Enterprise Pro -->
+          <div class="pricing-card glass-panel p-6 sm:p-8 relative">
+            <div class="text-xs sm:text-sm font-mono text-gray-500 mb-2">ENTERPRISE PRO</div>
+            <div class="flex items-baseline gap-1">
+              <span class="text-3xl sm:text-4xl font-bold">499k</span>
+              <span class="text-gray-400 text-xs sm:text-sm">/bulan</span>
+            </div>
+            <p class="text-gray-400 text-xs sm:text-sm mt-3 sm:mt-4 mb-4 sm:mb-6">Untuk agensi skala besar.</p>
+            
+            <div class="border-t border-gray-800 pt-4 sm:pt-6 space-y-2 sm:space-y-3">
+              <div class="flex items-center gap-3">
+                <div class="check-icon">
+                  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <span class="text-xs sm:text-sm text-gray-300">10 Proyek Aktif</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="check-icon">
+                  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <span class="text-xs sm:text-sm text-gray-300">Custom Branding</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="check-icon">
+                  <svg class="w-3 h-3 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <span class="text-xs sm:text-sm text-gray-300">Dedicated Server</span>
+              </div>
+            </div>
+            
+            <button class="w-full mt-6 sm:mt-8 btn-secondary text-xs sm:text-sm">Hubungi Sales</button>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 sm:py-32 relative" aria-label="Call to Action">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center reveal">
+        <div class="flex items-center justify-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+          <div class="accent-line"></div>
+          <span class="font-mono text-[10px] sm:text-xs tracking-widest text-cyan-400">FINAL STEP</span>
+          <div class="accent-line"></div>
+        </div>
+        
+        <h2 class="headline-lg mb-4 sm:mb-6">Enter the Command Center</h2>
+        
+        <p class="text-base sm:text-xl text-gray-400 max-w-2xl mx-auto mb-8 sm:mb-10">
+          Join the elite ecosystem where transparency is architecture.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+          <button class="btn-primary text-base sm:text-lg px-8 sm:px-10 py-3 sm:py-4">Request Platform Access</button>
+          <button class="btn-secondary text-base sm:text-lg px-8 sm:px-10 py-3 sm:py-4">Schedule Demo</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 sm:py-12 border-t border-gray-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
+          <div class="flex items-center gap-3">
+            <div class="w-7 h-7 sm:w-8 sm:h-8 border border-cyan-400 flex items-center justify-center" style="border-radius: 2px;">
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+                <path d="M2 10h6v8H2V10zM12 2h6v16h-6V2z" fill="#00d4ff"/>
+              </svg>
+            </div>
+            <span class="font-semibold text-sm sm:text-base">Progressia</span>
+          </div>
+          
+          <div class="flex items-center gap-6 sm:gap-8 text-xs sm:text-sm text-gray-500">
+            <a href="#" class="hover:text-cyan-400 transition-colors">Privacy</a>
+            <a href="#" class="hover:text-cyan-400 transition-colors">Terms</a>
+            <a href="#" class="hover:text-cyan-400 transition-colors">Contact</a>
+          </div>
+          
+          <div class="text-xs sm:text-sm text-gray-600 font-mono">System Nominal</div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Background Elements -->
+    <div class="geo-bg" aria-hidden="true">
+      <div class="geo-grid"></div>
+      <div class="geo-glow" style="top: -200px; left: -200px;"></div>
+      <div class="geo-glow" style="bottom: -200px; right: -200px; animation-delay: -3s;"></div>
     </div>
-  </footer>
+  </div>
 
   <script>
-    // Scroll Reveal
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) entry.target.classList.add('visible');
-      });
-    }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+    // --- ROBUST LOADER LOGIC ---
+    const splash = document.getElementById('splash-screen');
+    const bootText = document.getElementById('boot-text');
+    const bootProgress = document.getElementById('boot-progress');
+    
+    const bootSequence = [
+      "Initializing Neural Core...",
+      "Loading Interface...",
+      "Syncing Nodes...",
+      "Connection Ready",
+      "System Go"
+    ];
 
-    document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => revealObserver.observe(el));
+    let currentStep = 0;
+    let isLoaded = false;
 
-    // Capacity Bars Animation (Persuasive Data)
-    const barObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const bars = entry.target.querySelectorAll('.capacity-fill');
-          bars.forEach((bar, i) => {
-            const width = bar.dataset.width;
-            if (width) {
-              setTimeout(() => { bar.style.width = width + '%'; }, 200 + (i * 150));
-            }
-          });
-          barObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.3 });
+    function openDoors() {
+      if(isLoaded) return;
+      isLoaded = true;
+      document.body.classList.add('loaded');
+      
+      setTimeout(() => {
+        if(splash) splash.style.display = 'none';
+        initRevealObservers(); 
+      }, 2000);
+    }
 
-    document.querySelectorAll('.glass-card, .border').forEach(el => {
-      if(el.querySelector('.capacity-fill')) barObserver.observe(el);
+    function runBootSequence() {
+      if (currentStep < bootSequence.length) {
+        bootText.textContent = bootSequence[currentStep];
+        const progressPercent = ((currentStep + 1) / bootSequence.length) * 100;
+        bootProgress.style.width = progressPercent + '%';
+        currentStep++;
+        setTimeout(runBootSequence, 300); 
+      } else {
+        setTimeout(openDoors, 400);
+      }
+    }
+
+    splash.addEventListener('click', () => {
+      currentStep = bootSequence.length; 
+      bootProgress.style.width = '100%';
+      openDoors();
     });
+
+    if (document.readyState === 'complete') {
+      runBootSequence();
+    } else {
+      window.addEventListener('load', runBootSequence);
+    }
+    
+    setTimeout(() => {
+      if(!isLoaded) openDoors();
+    }, 5000);
+
+    // --- MAIN SITE LOGIC ---
+    
+    function initRevealObservers() {
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+      document.querySelectorAll('.reveal, .reveal-stagger').forEach(el => revealObserver.observe(el));
+
+      const barObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const bars = entry.target.querySelectorAll('.capacity-fill');
+            bars.forEach((bar, i) => {
+              const width = bar.dataset.width;
+              if (width) {
+                setTimeout(() => { bar.style.width = width + '%'; }, 200 + (i * 150));
+              }
+            });
+            barObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.3 });
+
+      document.querySelectorAll('.glass-card, .border').forEach(el => {
+        if(el.querySelector('.capacity-fill')) barObserver.observe(el);
+      });
+    }
 
     // Neural Network Visualization
     function initNeuralViz() {
@@ -940,7 +1340,7 @@
     }
     initNeuralViz();
 
-    // Hero Canvas - High Motion Particle System
+    // Hero Canvas
     function initHeroCanvas() {
       const canvas = document.getElementById('hero-canvas');
       if (!canvas) return;
@@ -956,7 +1356,9 @@
 
       function initParticles() {
         particles = [];
-        const count = 100;
+        const count = 60; // Fewer particles for mobile performance
+        if(window.innerWidth > 768) count = 100;
+        
         for (let i = 0; i < count; i++) {
           particles.push({
             x: Math.random() * canvas.width,
@@ -973,7 +1375,6 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         particles.forEach(p => {
-          // Mouse attraction
           const dx = mouse.x - p.x;
           const dy = mouse.y - p.y;
           const dist = Math.sqrt(dx*dx + dy*dy);
@@ -1000,7 +1401,6 @@
           ctx.fill();
         });
 
-        // Connections
         for (let i = 0; i < particles.length; i++) {
           for (let j = i + 1; j < particles.length; j++) {
             const dx = particles[i].x - particles[j].x;
@@ -1026,6 +1426,7 @@
       resize();
       animate();
     }
+    
     initHeroCanvas();
 
     // Smooth scroll
